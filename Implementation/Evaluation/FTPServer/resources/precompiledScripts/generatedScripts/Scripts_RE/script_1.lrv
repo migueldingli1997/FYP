@@ -1,0 +1,46 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.RE.RegExpHolder;
+    import RE.lib.basic.Symbol;
+    import com.guichaguri.minimalftp.FTPConnection;
+}
+
+GLOBAL{
+
+    VARIABLES{
+        int exprIndex = RegExpHolder.parseAndStore("typedef ftpC: com.guichaguri.minimalftp.FTPConnection; [p] ((~process(ftpC))*.process(ftpC).sendResponse(ftpC)[0,1])*;");
+        Symbol Sym_process_ftpC = new Symbol("process", Arrays.asList("ftpC"));
+        Symbol Sym_sendResponse_ftpC = new Symbol("sendResponse", Arrays.asList("ftpC"));
+    }
+
+    EVENTS{ 
+        timeout_isE(int id) = { RegExpHolder r.triggerTimeout_isEmpty() } where { id = r.getId(); }
+    }
+
+    FOREACH(FTPConnection _ftpC){
+
+        VARIABLES{
+            RegExpHolder reh = null;
+        }
+
+        EVENTS{ 
+            evt_process_ftpC() = { FTPConnection ftpC.process() } where { _ftpC = ftpC; }
+            evt_sendResponse_ftpC() = { FTPConnection ftpC.sendResponse() } where { _ftpC = ftpC; }
+        }
+
+        PROPERTY property{
+
+            STATES{
+                BAD{ bad }
+                STARTING{ start{ reh = new RegExpHolder(exprIndex); }}
+            }
+
+            TRANSITIONS{
+                start -> bad [ timeout_isE \reh.getId()==id \reh.stop(); ]
+                start -> bad [ evt_process_ftpC \reh.toDerivative(Sym_process_ftpC).isEmpty() \reh.stop(); ]
+                start -> bad [ evt_sendResponse_ftpC \reh.toDerivative(Sym_sendResponse_ftpC).isEmpty() \reh.stop(); ]
+            }
+        }
+    }
+}

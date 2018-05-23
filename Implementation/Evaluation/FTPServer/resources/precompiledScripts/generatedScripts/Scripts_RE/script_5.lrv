@@ -1,0 +1,47 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.RE.RegExpHolder;
+    import RE.lib.basic.Symbol;
+    import com.guichaguri.minimalftp.handler.ConnectionHandler;
+}
+
+GLOBAL{
+
+    VARIABLES{
+        int exprIndex = RegExpHolder.parseAndStore("typedef cH: com.guichaguri.minimalftp.handler.ConnectionHandler; [n] ?*.cds(cH).(cds(cH).cds(cH).cds(cH).cds(cH))[0,10];");
+        Symbol Sym_cds_cH = new Symbol("cds", Arrays.asList("cH"));
+    }
+
+    EVENTS{ 
+        timeout_isE(int id) = { RegExpHolder r.triggerTimeout_isEmpty() } where { id = r.getId(); }
+        timeout_hasE(int id) = { RegExpHolder r.triggerTimeout_hasEmptyString() } where { id = r.getId(); }
+    }
+
+    FOREACH(ConnectionHandler _cH){
+
+        VARIABLES{
+            RegExpHolder reh = null;
+        }
+
+        EVENTS{ 
+            evt_cds_cH() = { ConnectionHandler cH.createDataSocket() } where { _cH = cH; }
+        }
+
+        PROPERTY property{
+
+            STATES{
+                ACCEPTING{ good}
+                BAD{ bad }
+                STARTING{ start{ reh = new RegExpHolder(exprIndex); }}
+            }
+
+            TRANSITIONS{
+                start -> bad [ timeout_hasE \reh.getId()==id \reh.stop(); ]
+                start -> good [ timeout_isE \reh.getId()==id \reh.stop(); ]
+                start -> bad [ evt_cds_cH \reh.toDerivative(Sym_cds_cH).hasEmptyString() \reh.stop(); ]
+                start -> good [ evt_cds_cH \reh.getRegExp().isEmpty() \reh.stop(); ]
+            }
+        }
+    }
+}

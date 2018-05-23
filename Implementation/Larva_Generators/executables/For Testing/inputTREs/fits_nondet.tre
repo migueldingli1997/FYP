@@ -1,0 +1,16 @@
+[p]
+makeGoldUser.(openSession.deposit + openSession.withdraw) +
+makeGoldUser.(closeSession.deposit + closeSession.withdraw) + makeSilverUser;
+
+
+[n]
+makeGoldUser.(openSession.deposit + openSession.withdraw) +
+makeGoldUser.(closeSession.deposit + closeSession.withdraw) + makeSilverUser;
+
+
+(makeGoldUser.(openSession.deposit + openSession.withdraw))[2,4] +
+(makeGoldUser.(closeSession.deposit + closeSession.withdraw))[5,7];
+
+
+makeGoldUser.(openSession[2,4]) +
+makeGoldUser.(closeSession[5,7]);

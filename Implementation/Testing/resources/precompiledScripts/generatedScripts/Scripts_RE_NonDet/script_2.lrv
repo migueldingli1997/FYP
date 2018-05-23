@@ -1,0 +1,66 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.RE.RegExpHolder;
+    import RE.lib.basic.Symbol;
+}
+
+GLOBAL{
+
+    VARIABLES{
+        int exprIndex = RegExpHolder.parseAndStore("[n] makeGoldUser.( openSession.deposit + openSession.withdraw) + makeGoldUser.(closeSession.deposit + closeSession.withdraw) + makeSilverUser;");
+        Symbol Sym_makeGoldUser = new Symbol("makeGoldUser");
+        Symbol Sym_openSession = new Symbol("openSession");
+        Symbol Sym_deposit = new Symbol("deposit");
+        Symbol Sym_withdraw = new Symbol("withdraw");
+        Symbol Sym_closeSession = new Symbol("closeSession");
+        Symbol Sym_makeSilverUser = new Symbol("makeSilverUser");
+
+        RegExpHolder reh = null;
+        int currentState = 0;
+    }
+
+    EVENTS{ 
+        evt_makeGoldUser() = { *.makeGoldUser() }
+        evt_openSession() = { *.openSession() }
+        evt_deposit() = { *.deposit() }
+        evt_withdraw() = { *.withdraw() }
+        evt_closeSession() = { *.closeSession() }
+        evt_makeSilverUser() = { *.makeSilverUser() }
+        timeout_isE(int id) = { RegExpHolder r.triggerTimeout_isEmpty() } where { id = r.getId(); }
+        timeout_hasE(int id) = { RegExpHolder r.triggerTimeout_hasEmptyString() } where { id = r.getId(); }
+        evt_LarvaReset() = { LarvaController *.triggerReset() }
+        evt_LarvaStop() = { LarvaController *.triggerStop() }
+    }
+
+    PROPERTY property{
+
+        STATES{
+            ACCEPTING{ good{ currentState = 1; }}
+            BAD{ bad{ currentState = -1; }}
+            NORMAL { stopped }
+            STARTING{ start{ currentState = 0; reh = new RegExpHolder(exprIndex); }}
+        }
+
+        TRANSITIONS{
+            start -> bad [ timeout_hasE \reh.getId()==id \reh.stop(); ]
+            start -> good [ timeout_isE \reh.getId()==id \reh.stop(); ]
+            start -> bad [ evt_makeGoldUser \reh.toDerivative(Sym_makeGoldUser).hasEmptyString() \reh.stop(); ]
+            start -> bad [ evt_openSession \reh.toDerivative(Sym_openSession).hasEmptyString() \reh.stop(); ]
+            start -> bad [ evt_deposit \reh.toDerivative(Sym_deposit).hasEmptyString() \reh.stop(); ]
+            start -> bad [ evt_withdraw \reh.toDerivative(Sym_withdraw).hasEmptyString() \reh.stop(); ]
+            start -> bad [ evt_closeSession \reh.toDerivative(Sym_closeSession).hasEmptyString() \reh.stop(); ]
+            start -> bad [ evt_makeSilverUser \reh.toDerivative(Sym_makeSilverUser).hasEmptyString() \reh.stop(); ]
+            start -> good [ evt_makeGoldUser \reh.getRegExp().isEmpty() \reh.stop(); ]
+            start -> good [ evt_openSession \reh.getRegExp().isEmpty() \reh.stop(); ]
+            start -> good [ evt_deposit \reh.getRegExp().isEmpty() \reh.stop(); ]
+            start -> good [ evt_withdraw \reh.getRegExp().isEmpty() \reh.stop(); ]
+            start -> good [ evt_closeSession \reh.getRegExp().isEmpty() \reh.stop(); ]
+            start -> good [ evt_makeSilverUser \reh.getRegExp().isEmpty() \reh.stop(); ]
+            stopped -> start [ evt_LarvaReset ]
+            start -> stopped [ evt_LarvaStop \\reh.stop(); ]
+            bad -> stopped [ evt_LarvaStop \\reh.stop(); ]
+            good -> stopped [ evt_LarvaStop \\reh.stop(); ]
+        }
+    }
+}

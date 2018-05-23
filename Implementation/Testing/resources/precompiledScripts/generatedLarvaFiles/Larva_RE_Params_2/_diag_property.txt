@@ -1,0 +1,13 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = circle]; stopped start;
+node [shape = octagon]; bad;
+node [shape = point]; _s_s;
+_s_s -> start;
+stopped -> start [ label = "(1) evt_LarvaReset"];
+bad -> stopped [ label = "(1) evt_LarvaStop\\\\reh . stop ( ) ; "];
+start -> bad [ label = "(1) timeout_isE\\reh . getId ( ) == id \\reh . stop ( ) ; "];
+start -> bad [ label = "(2) evt_deposit_ua\\reh . toDerivative ( Sym_deposit_ua ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(3) evt_withdraw_ua\\reh . toDerivative ( Sym_withdraw_ua ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> stopped [ label = "(4) evt_LarvaStop\\\\reh . stop ( ) ; "];
+}

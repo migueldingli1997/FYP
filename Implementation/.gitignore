@@ -1,0 +1,13 @@
+# IntelliJ
+**/*.iml
+**/.idea/
+
+# Inputs/Outputs
+**/target/
+**/target2/
+**/larvaRuntimeOutput/*.txt
+*.class
+
+# Other
+**/.other/
+**/*.ini

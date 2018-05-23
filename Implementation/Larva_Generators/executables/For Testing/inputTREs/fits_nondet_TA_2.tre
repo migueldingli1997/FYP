@@ -1,0 +1,7 @@
+/* Clock value propagation */
+(makeGoldUser.(openSession .deposit +  openSession.withdraw))[2,4] +
+(makeGoldUser.(closeSession.deposit + closeSession.withdraw))[5,7];
+
+/* Clock reset */
+makeGoldUser.( openSession[2,4]) +
+makeGoldUser.(closeSession[5,7]);

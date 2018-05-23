@@ -1,0 +1,202 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.TA.AutomatonInstance;
+    import larvaTools.TA.StateSkip;
+    import larvaTools.TA.Outcome;
+}
+
+GLOBAL{
+
+    VARIABLES{
+        Channel channel_stateSkip = new Channel();
+        Channel channel_TAsToMain = new Channel();
+        int instanceCount = 0;
+        int currentState = 0;
+    }
+
+    EVENTS{
+        evt_makeGoldUser() = { *.makeGoldUser() }
+        evt_openSession() = { *.openSession() }
+        evt_deposit() = { *.deposit() }
+        evt_withdraw() = { *.withdraw() }
+        evt_closeSession() = { *.closeSession() }
+        evt_makeSilverUser() = { *.makeSilverUser() }
+        evt_anySymbol() = { evt_makeGoldUser | evt_openSession | evt_deposit | evt_withdraw | evt_closeSession | evt_makeSilverUser }
+
+        evt_channelTAsToMain(String state) = { channel_TAsToMain.receive(Object outcomeObj); } where { 
+            final Outcome outcome = (Outcome) outcomeObj;
+            state = outcome.getState(); 
+        }
+
+        evt_LarvaReset() = { LarvaController *.triggerReset() }
+        evt_LarvaStop() = { LarvaController *.triggerStop() }
+    }
+
+    PROPERTY main{
+        STATES{
+            ACCEPTING{ good{ currentState = 1; }}
+            BAD{ bad{ currentState = -1; }}
+            NORMAL{ stopped }
+            STARTING{
+                start {
+                    currentState = 0;
+                    instanceCount = 1;
+                    channel_stateSkip.send(new StateSkip(new AutomatonInstance(true, true), "main_to_start"));
+                }
+            }
+        }
+        TRANSITIONS{
+            start -> bad [ evt_channelTAsToMain \state.equals("bad") ]
+            start -> good [ evt_channelTAsToMain \state.equals("good") && --instanceCount == 0 ]
+            start -> stopped [ evt_LarvaStop \\instanceCount = 0; ]
+            bad -> stopped [ evt_LarvaStop \\instanceCount = 0; ]
+            good -> stopped [ evt_LarvaStop \\instanceCount = 0; ]
+            stopped -> start [ evt_LarvaReset ]
+        }
+    }
+
+    FOREACH(AutomatonInstance ta){
+
+        VARIABLES{ }
+
+        EVENTS{
+            evt_channelStateSkip(StateSkip ss) = { channel_stateSkip.receive(Object ssObj); } where { 
+                ss = (StateSkip) ssObj; 
+                ta = ss.getInstance(); 
+            }
+        }
+
+        PROPERTY property{
+            STATES{
+                NORMAL { S0 S2 S3 S4 S5 S6 S7 S9 S11 S12 S13 S14 S15 S16 S17 S18 
+                    S1 {
+                        %% New branch
+                        if (true) {
+                            instanceCount++;
+                            channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S1_to_S2", new Clock[]{}));
+                        }
+                        %% New branch
+                        if (true) {
+                            instanceCount++;
+                            channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S1_to_S5", new Clock[]{}));
+                        }
+                        %% Send termination message and kill the automaton
+                        channel_TAsToMain.send(new Outcome("good"));
+                        _killThis();
+                    }
+                    S8 {
+                        %% New branch
+                        if (true) {
+                            instanceCount++;
+                            channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S8_to_S9", new Clock[]{}));
+                        }
+                        %% New branch
+                        if (true) {
+                            instanceCount++;
+                            channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S8_to_S17", new Clock[]{}));
+                        }
+                        %% Send termination message and kill the automaton
+                        channel_TAsToMain.send(new Outcome("good"));
+                        _killThis();
+                    }
+                    S10 {
+                        %% New branch
+                        if (true) {
+                            instanceCount++;
+                            channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S10_to_S11", new Clock[]{}));
+                        }
+                        %% New branch
+                        if (true) {
+                            instanceCount++;
+                            channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S10_to_S14", new Clock[]{}));
+                        }
+                        %% Send termination message and kill the automaton
+                        channel_TAsToMain.send(new Outcome("good"));
+                        _killThis();
+                    }
+                    bad { channel_TAsToMain.send(new Outcome("bad")); _killThis(); }
+                    good { channel_TAsToMain.send(new Outcome("good")); _killThis(); }
+                }
+                STARTING{ 
+                    start {
+                        if (ta.shouldPerformStartActions) {
+                            %% The below actions should only be performed once
+                            ta.shouldPerformStartActions = false;
+                            %% New branch
+                            if (true) {
+                                instanceCount++;
+                                channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "start_to_S0", new Clock[]{}));
+                            }
+                            %% New branch
+                            if (true) {
+                                instanceCount++;
+                                channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "start_to_S8", new Clock[]{}));
+                            }
+                            %% Send termination message and kill the automaton
+                            channel_TAsToMain.send(new Outcome("good"));
+                            _killThis();
+                        }
+                    }
+                }
+            }
+            TRANSITIONS{
+                S3 -> bad [ evt_deposit ]
+                S2 -> S3 [ evt_openSession ]
+                S6 -> bad [ evt_withdraw ]
+                S5 -> S6 [ evt_openSession ]
+                S0 -> S1 [ evt_makeGoldUser ]
+                S12 -> bad [ evt_deposit ]
+                S11 -> S12 [ evt_closeSession ]
+                S15 -> bad [ evt_withdraw ]
+                S14 -> S15 [ evt_closeSession ]
+                S9 -> S10 [ evt_makeGoldUser ]
+                S17 -> bad [ evt_makeSilverUser ]
+                start -> S0 [ evt_channelStateSkip \ss.getDestination().equals("start_to_S0") ]
+                start -> S8 [ evt_channelStateSkip \ss.getDestination().equals("start_to_S8") ]
+                start -> S2 [ evt_channelStateSkip \ss.getDestination().equals("S1_to_S2") ]
+                start -> S5 [ evt_channelStateSkip \ss.getDestination().equals("S1_to_S5") ]
+                start -> S9 [ evt_channelStateSkip \ss.getDestination().equals("S8_to_S9") ]
+                start -> S17 [ evt_channelStateSkip \ss.getDestination().equals("S8_to_S17") ]
+                start -> S11 [ evt_channelStateSkip \ss.getDestination().equals("S10_to_S11") ]
+                start -> S14 [ evt_channelStateSkip \ss.getDestination().equals("S10_to_S14") ]
+                start -> start [ evt_channelStateSkip \ss.getDestination().equals("main_to_start") ]
+                S0 -> good [ evt_anySymbol ]
+                S2 -> good [ evt_anySymbol ]
+                S3 -> good [ evt_anySymbol ]
+                S4 -> good [ evt_anySymbol ]
+                S5 -> good [ evt_anySymbol ]
+                S6 -> good [ evt_anySymbol ]
+                S7 -> good [ evt_anySymbol ]
+                S9 -> good [ evt_anySymbol ]
+                S11 -> good [ evt_anySymbol ]
+                S12 -> good [ evt_anySymbol ]
+                S13 -> good [ evt_anySymbol ]
+                S14 -> good [ evt_anySymbol ]
+                S15 -> good [ evt_anySymbol ]
+                S16 -> good [ evt_anySymbol ]
+                S17 -> good [ evt_anySymbol ]
+                S18 -> good [ evt_anySymbol ]
+            }
+        }
+    }
+}
+
+METHODS{
+    void setClocks(final StateSkip ss, final Clock...clocks) {
+        final long timeouts[] = {  };
+        final Clock ssClocks[] = ss.getClocks();
+        if (ssClocks != null) {
+            for (int i = 0; i < ssClocks.length; i++) {
+                if (ssClocks[i] != null) {
+                    if (ssClocks[i].paused) {
+                        clocks[i].pause();
+                    } else {
+                        final long newValueLong = System.currentTimeMillis() - ssClocks[i].current_long();
+                        clocks[i].registerDynamically(newValueLong + timeouts[i], newValueLong);
+                    }
+                }
+            }
+        }
+    }
+}

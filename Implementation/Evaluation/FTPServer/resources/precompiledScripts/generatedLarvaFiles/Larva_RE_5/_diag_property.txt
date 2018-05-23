@@ -1,0 +1,12 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = doublecircle]; good;
+node [shape = circle]; start;
+node [shape = octagon]; bad;
+node [shape = point]; _s_s;
+_s_s -> start;
+start -> bad [ label = "(1) timeout_hasE\\reh . getId ( ) == id \\reh . stop ( ) ; "];
+start -> good [ label = "(2) timeout_isE\\reh . getId ( ) == id \\reh . stop ( ) ; "];
+start -> bad [ label = "(3) evt_cds_cH\\reh . toDerivative ( Sym_cds_cH ) . hasEmptyString ( ) \\reh . stop ( ) ; "];
+start -> good [ label = "(4) evt_cds_cH\\reh . getRegExp ( ) . isEmpty ( ) \\reh . stop ( ) ; "];
+}

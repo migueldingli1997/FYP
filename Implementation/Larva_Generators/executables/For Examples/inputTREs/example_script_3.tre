@@ -1,0 +1,7 @@
+[p] a.(b.b + c.c).d.(e.e + f.f).g;
+[p] a.(b.c[0,1].d + e.f[2,3].g).h.i[4,5];
+[p] (B.B.B.G[PT0S,PT1S])*; {X}
+[n] (?*).B.(B.B.B)[0,0.5]; {Y}
+[n] (B.B.B.B)*; {Z}
+[p] ((a+b+c)*.a.(a+b+c)*.b.(a+b+c)*.c.(a+b+c)*)+((a+b+c)*.a.(a+b+c)*.c.(a+b+c)*.b.(a+b+c)*)+((a+b+c)*.b.(a+b+c)*.a.(a+b+c)*.c.(a+b+c)*)+((a+b+c)*.b.(a+b+c)*.c.(a+b+c)*.a.(a+b+c)*)+((a+b+c)*.c.(a+b+c)*.a.(a+b+c)*.b.(a+b+c)*)+((a+b+c)*.c.(a+b+c)*.b.(a+b+c)*.a.(a+b+c)*);
+[p] init.(a)*;

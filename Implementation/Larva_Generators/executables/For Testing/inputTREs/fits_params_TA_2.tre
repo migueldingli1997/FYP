@@ -1,0 +1,5 @@
+/* PARAMETERIZED (MIXED PARAMETERS) */
+/* -------------------------------- */
+    typedef ui : transactionsystem.UserInfo;
+    typedef ua : transactionsystem.UserAccount;
+[p] deposit(ui,ua).ADMIN_initialise.openSession(ui).withdraw(ui,ua);

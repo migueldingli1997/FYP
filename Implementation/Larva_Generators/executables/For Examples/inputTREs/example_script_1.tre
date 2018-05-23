@@ -1,0 +1,19 @@
+/*Basic*/
+0; {a, b, c}
+1; {a, b, c}
+?; {a, b, c}
+a; {b, c}
+~a; {b, c}
+
+/*Operators*/
+a*; {b, c}
+a & a; {c}
+a + b; {c}
+a.b; {c}
+a[5,10]; {b, c}
+
+/*More AND-based*/
+a & ~b; {c}
+a.a & a.a; {b, c}
+a.b & a.c;
+(a.b + b.a) & (a.b + b.a); {c}

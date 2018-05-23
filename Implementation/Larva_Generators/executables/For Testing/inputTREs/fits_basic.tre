@@ -1,0 +1,15 @@
+/* BASIC EXPRESSIONS */
+/* ----------------- */
+[p] 0; {ADMIN_initialise}
+[p] 1; {ADMIN_initialise}
+[p] ?; {ADMIN_initialise, ADMIN_reconcile}
+
+/* SINGLE PLAIN SYMBOL */
+/* ------------------- */
+[p] ADMIN_initialise; {ADMIN_reconcile}
+[n] ADMIN_initialise; {ADMIN_reconcile}
+
+/* SINGLE NEGATED SYMBOL */
+/* --------------------- */
+[p] ~ADMIN_initialise; {ADMIN_reconcile}
+[n] ~ADMIN_initialise; {ADMIN_reconcile}

@@ -1,0 +1,25 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = circle]; S0 S1 S2 S3 S4 S5 bad start;
+node [shape = point]; _s_s;
+_s_s -> start;
+S3 -> bad [ label = "(1) evt_anySymbol_ftpC"];
+S3 -> bad [ label = "(2) evt_anyTimeout"];
+start -> S4 [ label = "(1) evt_sendResponse_ftpC"];
+start -> S0 [ label = "(2) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" start_to_S0 \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> S3 [ label = "(3) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" start_to_S3 \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> start [ label = "(4) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" S4_to_start \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> S0 [ label = "(5) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" S4_to_S0 \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> S2 [ label = "(6) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" S5_to_S2 \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> start [ label = "(7) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" S5_to_start \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> bad [ label = "(8) evt_anySymbol_ftpC"];
+start -> bad [ label = "(9) evt_anyTimeout"];
+S0 -> S1 [ label = "(1) evt_process_ftpC\\\\clock_0 . reset ( ) ; "];
+S0 -> bad [ label = "(2) evt_anySymbol_ftpC"];
+S0 -> bad [ label = "(3) evt_anyTimeout"];
+S1 -> S5 [ label = "(1) evt_sendResponse_ftpC"];
+S1 -> bad [ label = "(2) evt_anySymbol_ftpC"];
+S1 -> bad [ label = "(3) evt_anyTimeout"];
+S2 -> bad [ label = "(1) evt_anySymbol_ftpC"];
+S2 -> bad [ label = "(2) evt_anyTimeout"];
+}

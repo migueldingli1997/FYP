@@ -1,0 +1,10 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = circle]; start;
+node [shape = octagon]; bad;
+node [shape = point]; _s_s;
+_s_s -> start;
+start -> bad [ label = "(1) timeout_isE\\reh . getId ( ) == id \\reh . stop ( ) ; "];
+start -> bad [ label = "(2) evt_process_ftpC\\reh . toDerivative ( Sym_process_ftpC ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(3) evt_sendResponse_ftpC\\reh . toDerivative ( Sym_sendResponse_ftpC ) . isEmpty ( ) \\reh . stop ( ) ; "];
+}

@@ -1,0 +1,189 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.TA.AutomatonInstance;
+    import larvaTools.TA.StateSkip;
+    import larvaTools.TA.Outcome;
+    import com.guichaguri.minimalftp.handler.ConnectionHandler;
+}
+
+GLOBAL{
+
+    EVENTS{
+    }
+
+    FOREACH(ConnectionHandler _cH){
+
+        VARIABLES{
+            Channel channel_stateSkip = new Channel();
+            Channel channel_TAsToMain = new Channel();
+            int instanceCount = 0;
+        }
+
+        EVENTS{
+            evt_syst_cH() = { execution ConnectionHandler cH.syst() } where { _cH = cH; }
+            evt_stat_cH() = { execution ConnectionHandler cH.stat() } where { _cH = cH; }
+            evt_mode_cH() = { execution ConnectionHandler cH.mode() } where { _cH = cH; }
+            evt_pasv_cH() = { execution ConnectionHandler cH.pasv() } where { _cH = cH; }
+            evt_port_cH() = { execution ConnectionHandler cH.port() } where { _cH = cH; }
+            evt_authenticate_cH(boolean authenticated) = { ConnectionHandler cH.authenticate()uponReturning(authenticated) } where { _cH = cH; }
+            evt_anySymbol_cH(boolean authenticated) = { evt_syst_cH | evt_stat_cH | evt_mode_cH | evt_pasv_cH | evt_port_cH | evt_authenticate_cH } where { authenticated = true; }
+
+            evt_channelTAsToMain(String state) = { channel_TAsToMain.receive(Object outcomeObj); } where { 
+                final Outcome outcome = (Outcome) outcomeObj;
+                state = outcome.getState(); 
+                _cH = (ConnectionHandler) outcome.getVar(0); 
+            }
+        }
+
+        PROPERTY main{
+            STATES{
+                ACCEPTING{ good }
+                BAD{ bad }
+                STARTING{
+                    start {
+                        instanceCount = 1;
+                        channel_stateSkip.send(new StateSkip(new AutomatonInstance(true, true), "main_to_start", new Object[]{_cH}));
+                    }
+                }
+            }
+            TRANSITIONS{
+                start -> bad [ evt_channelTAsToMain \state.equals("bad") ]
+                start -> good [ evt_channelTAsToMain \state.equals("good") && --instanceCount == 0 ]
+            }
+        }
+
+        FOREACH(AutomatonInstance ta){
+
+            VARIABLES{ }
+
+            EVENTS{
+                evt_channelStateSkip(StateSkip ss) = { channel_stateSkip.receive(Object ssObj); } where { 
+                    ss = (StateSkip) ssObj; 
+                    ta = ss.getInstance(); 
+                    _cH = (ConnectionHandler) ss.getVar(0); 
+                }
+            }
+
+            PROPERTY property{
+                STATES{
+                    NORMAL { S0 S1 S3 S4 S6 S7 S9 S10 S11 S12 
+                        S2 {
+                            %% New branch
+                            if (true) {
+                                instanceCount++;
+                                channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S2_to_S3", new Clock[]{}, new Object[]{_cH}));
+                            }
+                            %% New branch
+                            if (true) {
+                                instanceCount++;
+                                channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S2_to_S5", new Clock[]{}, new Object[]{_cH}));
+                            }
+                            %% Send termination message and kill the automaton
+                            channel_TAsToMain.send(new Outcome("good", new Object[]{_cH}));
+                            _killThis();
+                        }
+                        S5 {
+                            %% New branch
+                            if (true) {
+                                instanceCount++;
+                                channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S5_to_S6", new Clock[]{}, new Object[]{_cH}));
+                            }
+                            %% New branch
+                            if (true) {
+                                instanceCount++;
+                                channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S5_to_S8", new Clock[]{}, new Object[]{_cH}));
+                            }
+                            %% Send termination message and kill the automaton
+                            channel_TAsToMain.send(new Outcome("good", new Object[]{_cH}));
+                            _killThis();
+                        }
+                        S8 {
+                            %% New branch
+                            if (true) {
+                                instanceCount++;
+                                channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S8_to_S9", new Clock[]{}, new Object[]{_cH}));
+                            }
+                            %% New branch
+                            if (true) {
+                                instanceCount++;
+                                channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S8_to_S11", new Clock[]{}, new Object[]{_cH}));
+                            }
+                            %% Send termination message and kill the automaton
+                            channel_TAsToMain.send(new Outcome("good", new Object[]{_cH}));
+                            _killThis();
+                        }
+                        bad { channel_TAsToMain.send(new Outcome("bad", new Object[]{_cH})); _killThis(); }
+                        good { channel_TAsToMain.send(new Outcome("good", new Object[]{_cH})); _killThis(); }
+                    }
+                    STARTING{ 
+                        start {
+                            if (ta.shouldPerformStartActions) {
+                                %% The below actions should only be performed once
+                                ta.shouldPerformStartActions = false;
+                                %% New branch
+                                if (true) {
+                                    instanceCount++;
+                                    channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "start_to_S0", new Clock[]{}, new Object[]{_cH}));
+                                }
+                                %% New branch
+                                if (true) {
+                                    instanceCount++;
+                                    channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "start_to_S2", new Clock[]{}, new Object[]{_cH}));
+                                }
+                                %% Send termination message and kill the automaton
+                                channel_TAsToMain.send(new Outcome("good", new Object[]{_cH}));
+                                _killThis();
+                            }
+                        }
+                    }
+                }
+                TRANSITIONS{
+                    S0 -> bad [ evt_syst_cH ]
+                    S3 -> bad [ evt_stat_cH ]
+                    S6 -> bad [ evt_mode_cH ]
+                    S9 -> bad [ evt_pasv_cH ]
+                    S11 -> bad [ evt_port_cH ]
+                    start -> S0 [ evt_channelStateSkip \ss.getDestination().equals("start_to_S0") ]
+                    start -> S2 [ evt_channelStateSkip \ss.getDestination().equals("start_to_S2") ]
+                    start -> S3 [ evt_channelStateSkip \ss.getDestination().equals("S2_to_S3") ]
+                    start -> S5 [ evt_channelStateSkip \ss.getDestination().equals("S2_to_S5") ]
+                    start -> S6 [ evt_channelStateSkip \ss.getDestination().equals("S5_to_S6") ]
+                    start -> S8 [ evt_channelStateSkip \ss.getDestination().equals("S5_to_S8") ]
+                    start -> S9 [ evt_channelStateSkip \ss.getDestination().equals("S8_to_S9") ]
+                    start -> S11 [ evt_channelStateSkip \ss.getDestination().equals("S8_to_S11") ]
+                    start -> start [ evt_channelStateSkip \ss.getDestination().equals("main_to_start") ]
+                    S0 -> good [ evt_anySymbol_cH \authenticated ]
+                    S1 -> good [ evt_anySymbol_cH \authenticated ]
+                    S3 -> good [ evt_anySymbol_cH \authenticated ]
+                    S4 -> good [ evt_anySymbol_cH \authenticated ]
+                    S6 -> good [ evt_anySymbol_cH \authenticated ]
+                    S7 -> good [ evt_anySymbol_cH \authenticated ]
+                    S9 -> good [ evt_anySymbol_cH \authenticated ]
+                    S10 -> good [ evt_anySymbol_cH \authenticated ]
+                    S11 -> good [ evt_anySymbol_cH \authenticated ]
+                    S12 -> good [ evt_anySymbol_cH \authenticated ]
+                }
+            }
+        }
+    }
+}
+
+METHODS{
+    void setClocks(final StateSkip ss, final Clock...clocks) {
+        final long timeouts[] = {  };
+        final Clock ssClocks[] = ss.getClocks();
+        if (ssClocks != null) {
+            for (int i = 0; i < ssClocks.length; i++) {
+                if (ssClocks[i] != null) {
+                    if (ssClocks[i].paused) {
+                        clocks[i].pause();
+                    } else {
+                        final long newValueLong = System.currentTimeMillis() - ssClocks[i].current_long();
+                        clocks[i].registerDynamically(newValueLong + timeouts[i], newValueLong);
+                    }
+                }
+            }
+        }
+    }
+}

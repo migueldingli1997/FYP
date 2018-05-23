@@ -1,0 +1,9 @@
+/* CONCAT WITH TIME INTERVAL */
+/* ------------------------- */
+[p] ADMIN_initialise.ADMIN_createUser[2,4]; {ADMIN_reconcile}
+[n] ADMIN_initialise.ADMIN_createUser[2,4]; {ADMIN_reconcile}
+
+/* FAST LOOPING */
+/* ------------ */
+[p] (ADMIN_reconcile[0,1])*;
+[p] (ADMIN_reconcile[0,0.5])*;

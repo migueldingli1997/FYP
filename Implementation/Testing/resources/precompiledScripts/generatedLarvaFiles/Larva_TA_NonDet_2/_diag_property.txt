@@ -1,0 +1,25 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = circle]; S0 S1 S2 S3 S4 S5 bad start;
+node [shape = point]; _s_s;
+_s_s -> start;
+S3 -> S4 [ label = "(1) evt_makeGoldUser\\\\clock_1 . reset ( ) ; "];
+S3 -> bad [ label = "(2) evt_anySymbol"];
+S3 -> bad [ label = "(3) evt_anyTimeout"];
+S4 -> S5 [ label = "(1) evt_closeSession\\clock_1 . current ( ) >= 5 && clock_1 . current ( ) < 7 \\clock_1 . pause ( ) ; "];
+S4 -> bad [ label = "(2) evt_anySymbol"];
+S4 -> bad [ label = "(3) evt_anyTimeout"];
+S5 -> bad [ label = "(1) evt_anySymbol"];
+S5 -> bad [ label = "(2) evt_anyTimeout"];
+start -> S0 [ label = "(1) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" start_to_S0 \" ) \\setClocks ( ss , clock_0 , clock_1 ) ; "];
+start -> S3 [ label = "(2) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" start_to_S3 \" ) \\setClocks ( ss , clock_0 , clock_1 ) ; "];
+start -> start [ label = "(3) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" main_to_start \" ) \\setClocks ( ss , clock_0 , clock_1 ) ; "];
+S0 -> S1 [ label = "(1) evt_makeGoldUser\\\\clock_0 . reset ( ) ; "];
+S0 -> bad [ label = "(2) evt_anySymbol"];
+S0 -> bad [ label = "(3) evt_anyTimeout"];
+S1 -> S2 [ label = "(1) evt_openSession\\clock_0 . current ( ) >= 2 && clock_0 . current ( ) < 4 \\clock_0 . pause ( ) ; "];
+S1 -> bad [ label = "(2) evt_anySymbol"];
+S1 -> bad [ label = "(3) evt_anyTimeout"];
+S2 -> bad [ label = "(1) evt_anySymbol"];
+S2 -> bad [ label = "(2) evt_anyTimeout"];
+}

@@ -1,0 +1,15 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = circle]; start;
+node [shape = octagon]; bad;
+node [shape = point]; _s_s;
+_s_s -> start;
+start -> bad [ label = "(1) timeout_isE\\reh . getId ( ) == id \\reh . stop ( ) ; "];
+start -> bad [ label = "(2) evt_onConnected_cH\\reh . toDerivative ( Sym_onConnected_cH ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(3) evt_needUser_cH\\needs && reh . toDerivative ( Sym_needUser_cH ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(4) evt_user_cH\\reh . toDerivative ( Sym_user_cH ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(5) evt_needPass_cH\\needs && reh . toDerivative ( Sym_needPass_cH ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(6) evt_pass_cH\\reh . toDerivative ( Sym_pass_cH ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(7) evt_authenticate_cH\\authenticated && reh . toDerivative ( Sym_authenticate_cH ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(8) evt_createDataSocket_cH\\reh . toDerivative ( Sym_createDataSocket_cH ) . isEmpty ( ) \\reh . stop ( ) ; "];
+}

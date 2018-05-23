@@ -1,0 +1,24 @@
+#define A makeGoldUser
+#define B makeSilverUser
+#define C openSession
+#define D closeSession
+#define E deposit
+#define F withdraw
+
+/* Good behaviour */
+[p]
+A.(C.E + C.F) +
+A.(D.E + D.F) + B;
+
+/* Bad behaviour */
+[n]
+A.(C.E + C.F) +
+A.(D.E + D.F) + B;
+
+/* Clock value propagation */
+(A.(C.E + C.F))[2,4] +
+(A.(D.E + D.F))[5,7];
+
+/* Clock reset */
+A.(C[2,4]) +
+A.(D[5,7]);

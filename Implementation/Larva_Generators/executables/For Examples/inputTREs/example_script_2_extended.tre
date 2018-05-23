@@ -1,0 +1,8 @@
+[p] (B.B.B.G[PT0S,PT1S])*; {W}
+[n] (?*).B.(B.B.B)[0,0.5]; {X}
+[n] (B.B.B.B)*; {Y}
+A.(B.C)[5,10].(D[5,inf].E)[10,20].F; {Z}
+typedef uVar: java.Uclass;
+typedef vVar: java.Vclass;
+typedef wVar: java.Wclass;
+[p] A(uVar,vVar,wVar).B.C(uVar); {X, Y(uVar), Z(uVar,vVar)}

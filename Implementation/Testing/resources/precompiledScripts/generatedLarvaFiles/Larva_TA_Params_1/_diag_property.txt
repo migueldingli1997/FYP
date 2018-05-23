@@ -1,0 +1,12 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = circle]; S0 S1 bad start;
+node [shape = point]; _s_s;
+_s_s -> start;
+start -> S0 [ label = "(1) evt_deposit_ua"];
+start -> start [ label = "(2) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" main_to_start \" ) "];
+start -> bad [ label = "(3) evt_anySymbol_ua"];
+S0 -> S1 [ label = "(1) evt_withdraw_ua"];
+S0 -> bad [ label = "(2) evt_anySymbol_ua"];
+S1 -> bad [ label = "(1) evt_anySymbol_ua"];
+}

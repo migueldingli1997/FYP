@@ -1,0 +1,18 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = doublecircle]; good;
+node [shape = circle]; stopped start;
+node [shape = octagon]; bad;
+node [shape = point]; _s_s;
+_s_s -> start;
+stopped -> start [ label = "(1) evt_LarvaReset"];
+bad -> stopped [ label = "(1) evt_LarvaStop\\\\reh . stop ( ) ; "];
+start -> bad [ label = "(1) timeout_hasE\\reh . getId ( ) == id \\reh . stop ( ) ; "];
+start -> good [ label = "(2) timeout_isE\\reh . getId ( ) == id \\reh . stop ( ) ; "];
+start -> bad [ label = "(3) evt_ADMIN_initialise\\reh . toDerivative ( Sym_ADMIN_initialise ) . hasEmptyString ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(4) evt_ADMIN_reconcile\\reh . toDerivative ( Sym_ADMIN_reconcile ) . hasEmptyString ( ) \\reh . stop ( ) ; "];
+start -> good [ label = "(5) evt_ADMIN_initialise\\reh . getRegExp ( ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> good [ label = "(6) evt_ADMIN_reconcile\\reh . getRegExp ( ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> stopped [ label = "(7) evt_LarvaStop\\\\reh . stop ( ) ; "];
+good -> stopped [ label = "(1) evt_LarvaStop\\\\reh . stop ( ) ; "];
+}

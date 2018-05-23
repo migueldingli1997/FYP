@@ -1,0 +1,15 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = circle]; S0 S1 bad start;
+node [shape = point]; _s_s;
+_s_s -> start;
+start -> S0 [ label = "(1) evt_deposit_ua\\\\clock_0 . reset ( ) ; "];
+start -> start [ label = "(2) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" main_to_start \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> bad [ label = "(3) evt_anySymbol_ua"];
+start -> bad [ label = "(4) evt_anyTimeout"];
+S0 -> S1 [ label = "(1) evt_withdraw_ua\\clock_0 . current ( ) >= 2 && clock_0 . current ( ) < 4 \\clock_0 . pause ( ) ; "];
+S0 -> bad [ label = "(2) evt_anySymbol_ua"];
+S0 -> bad [ label = "(3) evt_anyTimeout"];
+S1 -> bad [ label = "(1) evt_anySymbol_ua"];
+S1 -> bad [ label = "(2) evt_anyTimeout"];
+}

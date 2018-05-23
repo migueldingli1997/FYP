@@ -1,0 +1,98 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.TA.AutomatonInstance;
+    import larvaTools.TA.StateSkip;
+    import larvaTools.TA.Outcome;
+}
+
+GLOBAL{
+
+    VARIABLES{
+        Channel channel_stateSkip = new Channel();
+        Channel channel_TAsToMain = new Channel();
+        int instanceCount = 0;
+        int currentState = 0;
+    }
+
+    EVENTS{
+        evt_ADMIN_initialise() = { *.ADMIN_initialise() }
+        evt_ADMIN_reconcile() = { *.ADMIN_reconcile() }
+        evt_anySymbol() = { evt_ADMIN_initialise | evt_ADMIN_reconcile }
+
+        evt_channelTAsToMain(String state) = { channel_TAsToMain.receive(Object outcomeObj); } where { 
+            final Outcome outcome = (Outcome) outcomeObj;
+            state = outcome.getState(); 
+        }
+
+        evt_LarvaReset() = { LarvaController *.triggerReset() }
+        evt_LarvaStop() = { LarvaController *.triggerStop() }
+    }
+
+    PROPERTY main{
+        STATES{
+            BAD{ bad{ currentState = -1; }}
+            NORMAL{ stopped }
+            STARTING{
+                start {
+                    currentState = 0;
+                    instanceCount = 1;
+                    channel_stateSkip.send(new StateSkip(new AutomatonInstance(true, true), "main_to_start"));
+                }
+            }
+        }
+        TRANSITIONS{
+            start -> bad [ evt_channelTAsToMain \state.equals("bad") && --instanceCount == 0 ]
+            start -> stopped [ evt_LarvaStop \\instanceCount = 0; ]
+            bad -> stopped [ evt_LarvaStop \\instanceCount = 0; ]
+            stopped -> start [ evt_LarvaReset ]
+        }
+    }
+
+    FOREACH(AutomatonInstance ta){
+
+        VARIABLES{ }
+
+        EVENTS{
+            evt_channelStateSkip(StateSkip ss) = { channel_stateSkip.receive(Object ssObj); } where { 
+                ss = (StateSkip) ssObj; 
+                ta = ss.getInstance(); 
+            }
+        }
+
+        PROPERTY property{
+            STATES{
+                NORMAL { S0 
+                    bad { channel_TAsToMain.send(new Outcome("bad")); _killThis(); }
+                }
+                STARTING{ start }
+            }
+            TRANSITIONS{
+                start -> S0 [ evt_ADMIN_initialise ]
+                start -> S0 [ evt_ADMIN_reconcile ]
+                start -> start [ evt_channelStateSkip \ss.getDestination().equals("main_to_start") ]
+                start -> bad [ evt_anySymbol ]
+                S0 -> bad [ evt_anySymbol ]
+            }
+        }
+    }
+}
+
+METHODS{
+    void setClocks(final StateSkip ss, final Clock...clocks) {
+        final long timeouts[] = {  };
+        final Clock ssClocks[] = ss.getClocks();
+        if (ssClocks != null) {
+            for (int i = 0; i < ssClocks.length; i++) {
+                if (ssClocks[i] != null) {
+                    if (ssClocks[i].paused) {
+                        clocks[i].pause();
+                    } else {
+                        final long newValueLong = System.currentTimeMillis() - ssClocks[i].current_long();
+                        clocks[i].registerDynamically(newValueLong + timeouts[i], newValueLong);
+                    }
+                }
+            }
+        }
+    }
+}

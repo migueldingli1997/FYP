@@ -1,0 +1,111 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.TA.AutomatonInstance;
+    import larvaTools.TA.StateSkip;
+    import larvaTools.TA.Outcome;
+    import transactionsystem.UserInfo;
+    import transactionsystem.UserAccount;
+}
+
+GLOBAL{
+
+    EVENTS{
+        evt_LarvaReset() = { LarvaController *.triggerReset() }
+        evt_LarvaStop() = { LarvaController *.triggerStop() }
+    }
+
+    FOREACH(UserInfo _ui){
+
+        FOREACH(UserAccount _ua){
+
+            VARIABLES{
+                Channel channel_stateSkip = new Channel();
+                Channel channel_TAsToMain = new Channel();
+                int instanceCount = 0;
+                int currentState = 0;
+            }
+
+            EVENTS{
+                evt_deposit_ui_ua() = { UserAccount ua.deposit() } where { _ua = ua; _ui = ua.getOwnerInfo(); }
+                evt_withdraw_ui_ua() = { UserAccount ua.withdraw() } where { _ua = ua; _ui = ua.getOwnerInfo(); }
+                evt_anySymbol_ua() = { evt_deposit_ui_ua | evt_withdraw_ui_ua }
+
+                evt_channelTAsToMain(String state) = { channel_TAsToMain.receive(Object outcomeObj); } where { 
+                    final Outcome outcome = (Outcome) outcomeObj;
+                    state = outcome.getState(); 
+                    _ui = (UserInfo) outcome.getVar(0); 
+                    _ua = (UserAccount) outcome.getVar(1); 
+                }
+            }
+
+            PROPERTY main{
+                STATES{
+                    BAD{ bad{ currentState = -1; }}
+                    NORMAL{ stopped }
+                    STARTING{
+                        start {
+                            currentState = 0;
+                            instanceCount = 1;
+                            channel_stateSkip.send(new StateSkip(new AutomatonInstance(true, true), "main_to_start", new Object[]{_ui, _ua}));
+                        }
+                    }
+                }
+                TRANSITIONS{
+                    start -> bad [ evt_channelTAsToMain \state.equals("bad") && --instanceCount == 0 ]
+                    start -> stopped [ evt_LarvaStop \\instanceCount = 0; ]
+                    bad -> stopped [ evt_LarvaStop \\instanceCount = 0; ]
+                    stopped -> start [ evt_LarvaReset ]
+                }
+            }
+
+            FOREACH(AutomatonInstance ta){
+
+                VARIABLES{ }
+
+                EVENTS{
+                    evt_channelStateSkip(StateSkip ss) = { channel_stateSkip.receive(Object ssObj); } where { 
+                        ss = (StateSkip) ssObj; 
+                        ta = ss.getInstance(); 
+                        _ui = (UserInfo) ss.getVar(0); 
+                        _ua = (UserAccount) ss.getVar(1); 
+                    }
+                }
+
+                PROPERTY property{
+                    STATES{
+                        NORMAL { S0 
+                            bad { channel_TAsToMain.send(new Outcome("bad", new Object[]{_ui, _ua})); _killThis(); }
+                        }
+                        STARTING{ start }
+                    }
+                    TRANSITIONS{
+                        start -> S0 [ evt_deposit_ui_ua ]
+                        start -> start [ evt_channelStateSkip \ss.getDestination().equals("main_to_start") ]
+                        start -> bad [ evt_anySymbol_ua ]
+                        S0 -> bad [ evt_anySymbol_ua ]
+                    }
+                }
+            }
+        }
+    }
+}
+
+METHODS{
+    void setClocks(final StateSkip ss, final Clock...clocks) {
+        final long timeouts[] = {  };
+        final Clock ssClocks[] = ss.getClocks();
+        if (ssClocks != null) {
+            for (int i = 0; i < ssClocks.length; i++) {
+                if (ssClocks[i] != null) {
+                    if (ssClocks[i].paused) {
+                        clocks[i].pause();
+                    } else {
+                        final long newValueLong = System.currentTimeMillis() - ssClocks[i].current_long();
+                        clocks[i].registerDynamically(newValueLong + timeouts[i], newValueLong);
+                    }
+                }
+            }
+        }
+    }
+}

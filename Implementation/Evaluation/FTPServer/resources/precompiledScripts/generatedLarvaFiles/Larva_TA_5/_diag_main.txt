@@ -1,0 +1,10 @@
+digraph _logic_main {
+rankdir=LR;
+node [shape = doublecircle]; good;
+node [shape = circle]; start;
+node [shape = octagon]; bad;
+node [shape = point]; _s_s;
+_s_s -> start;
+start -> bad [ label = "(1) evt_channelTAsToMain\\state . equals ( \" bad \" ) "];
+start -> good [ label = "(2) evt_channelTAsToMain\\state . equals ( \" good \" ) && -- instanceCount == 0 "];
+}

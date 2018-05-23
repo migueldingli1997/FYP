@@ -1,0 +1,57 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.RE.RegExpHolder;
+    import RE.lib.basic.Symbol;
+    import transactionsystem.UserInfo;
+    import transactionsystem.UserAccount;
+}
+
+GLOBAL{
+
+    VARIABLES{
+        int exprIndex = RegExpHolder.parseAndStore("typedef ui : transactionsystem.UserInfo; typedef ua : transactionsystem.UserAccount; [p] deposit(ui,ua); {withdraw(ui,ua)}");
+        Symbol Sym_deposit_ui_ua = new Symbol("deposit", Arrays.asList("ui", "ua"));
+        Symbol Sym_withdraw_ui_ua = new Symbol("withdraw", Arrays.asList("ui", "ua"));
+    }
+
+    EVENTS{ 
+        timeout_isE(int id) = { RegExpHolder r.triggerTimeout_isEmpty() } where { id = r.getId(); }
+        evt_LarvaReset() = { LarvaController *.triggerReset() }
+        evt_LarvaStop() = { LarvaController *.triggerStop() }
+    }
+
+    FOREACH(UserInfo _ui){
+
+        FOREACH(UserAccount _ua){
+
+            VARIABLES{
+                RegExpHolder reh = null;
+                int currentState = 0;
+            }
+
+            EVENTS{ 
+                evt_deposit_ui_ua() = { UserAccount ua.deposit() } where { _ua = ua; _ui = ua.getOwnerInfo(); }
+                evt_withdraw_ui_ua() = { UserAccount ua.withdraw() } where { _ua = ua; _ui = ua.getOwnerInfo(); }
+            }
+
+            PROPERTY property{
+
+                STATES{
+                    BAD{ bad{ currentState = -1; }}
+                    NORMAL { stopped }
+                    STARTING{ start{ currentState = 0; reh = new RegExpHolder(exprIndex); }}
+                }
+
+                TRANSITIONS{
+                    start -> bad [ timeout_isE \reh.getId()==id \reh.stop(); ]
+                    start -> bad [ evt_deposit_ui_ua \reh.toDerivative(Sym_deposit_ui_ua).isEmpty() \reh.stop(); ]
+                    start -> bad [ evt_withdraw_ui_ua \reh.toDerivative(Sym_withdraw_ui_ua).isEmpty() \reh.stop(); ]
+                    stopped -> start [ evt_LarvaReset ]
+                    start -> stopped [ evt_LarvaStop \\reh.stop(); ]
+                    bad -> stopped [ evt_LarvaStop \\reh.stop(); ]
+                }
+            }
+        }
+    }
+}

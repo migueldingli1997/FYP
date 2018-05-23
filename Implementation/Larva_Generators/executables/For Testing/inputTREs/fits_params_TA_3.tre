@@ -1,0 +1,4 @@
+/* PARAMETERIZED (WITH TIME INTERVAL) */
+/* ---------------------------------- */
+    typedef ua : transactionsystem.UserAccount;
+[p] deposit(ua).withdraw(ua)[2,4];

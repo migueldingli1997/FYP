@@ -1,0 +1,22 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = doublecircle]; good;
+node [shape = circle]; start;
+node [shape = octagon]; bad;
+node [shape = point]; _s_s;
+_s_s -> start;
+start -> bad [ label = "(1) timeout_hasE\\reh . getId ( ) == id \\reh . stop ( ) ; "];
+start -> good [ label = "(2) timeout_isE\\reh . getId ( ) == id \\reh . stop ( ) ; "];
+start -> bad [ label = "(3) evt_onConnected_cH\\reh . toDerivative ( Sym_onConnected_cH ) . hasEmptyString ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(4) evt_auth_cH\\authenticated && reh . toDerivative ( Sym_auth_cH ) . hasEmptyString ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(5) evt_user_cH\\reh . toDerivative ( Sym_user_cH ) . hasEmptyString ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(6) evt_pass_cH\\reh . toDerivative ( Sym_pass_cH ) . hasEmptyString ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(7) evt_cds_cH\\reh . toDerivative ( Sym_cds_cH ) . hasEmptyString ( ) \\reh . stop ( ) ; "];
+start -> bad [ label = "(8) evt_onDisconnected_cH\\reh . toDerivative ( Sym_onDisconnected_cH ) . hasEmptyString ( ) \\reh . stop ( ) ; "];
+start -> good [ label = "(9) evt_onConnected_cH\\reh . getRegExp ( ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> good [ label = "(10) evt_auth_cH\\authenticated && reh . getRegExp ( ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> good [ label = "(11) evt_user_cH\\reh . getRegExp ( ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> good [ label = "(12) evt_pass_cH\\reh . getRegExp ( ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> good [ label = "(13) evt_cds_cH\\reh . getRegExp ( ) . isEmpty ( ) \\reh . stop ( ) ; "];
+start -> good [ label = "(14) evt_onDisconnected_cH\\reh . getRegExp ( ) . isEmpty ( ) \\reh . stop ( ) ; "];
+}

@@ -1,0 +1,9 @@
+/* Good behaviour */
+[p]
+makeGoldUser.( openSession.deposit +  openSession.withdraw) +
+makeGoldUser.(closeSession.deposit + closeSession.withdraw) + makeSilverUser;
+
+/* Bad behaviour */
+[n]
+makeGoldUser.( openSession.deposit +  openSession.withdraw) +
+makeGoldUser.(closeSession.deposit + closeSession.withdraw) + makeSilverUser;

@@ -1,0 +1,68 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.RE.RegExpHolder;
+    import RE.lib.basic.Symbol;
+    import com.guichaguri.minimalftp.handler.ConnectionHandler;
+    import com.guichaguri.minimalftp.FTPConnection;
+}
+
+GLOBAL{
+
+    VARIABLES{
+        int exprIndex = RegExpHolder.parseAndStore("typedef cH: com.guichaguri.minimalftp.handler.ConnectionHandler; [n] onConnected(cH).(auth(cH) & ~user(cH) & ~pass(cH)).( cds(cH).cds(cH).cds(cH).cds(cH).cds(cH).cds(cH) + ?*.(~onDisconnected(cH))[PT1H,inf] );");
+        Symbol Sym_onConnected_cH = new Symbol("onConnected", Arrays.asList("cH"));
+        Symbol Sym_auth_cH = new Symbol("auth", Arrays.asList("cH"));
+        Symbol Sym_user_cH = new Symbol("user", Arrays.asList("cH"));
+        Symbol Sym_pass_cH = new Symbol("pass", Arrays.asList("cH"));
+        Symbol Sym_cds_cH = new Symbol("cds", Arrays.asList("cH"));
+        Symbol Sym_onDisconnected_cH = new Symbol("onDisconnected", Arrays.asList("cH"));
+    }
+
+    EVENTS{ 
+        timeout_isE(int id) = { RegExpHolder r.triggerTimeout_isEmpty() } where { id = r.getId(); }
+        timeout_hasE(int id) = { RegExpHolder r.triggerTimeout_hasEmptyString() } where { id = r.getId(); }
+    }
+
+    FOREACH(ConnectionHandler _cH){
+
+        VARIABLES{
+            RegExpHolder reh = null;
+        }
+
+        EVENTS{ 
+            evt_onConnected_cH() = { ConnectionHandler cH.onConnected() } where { _cH = cH; }
+            evt_auth_cH(boolean authenticated) = { ConnectionHandler cH.authenticate()uponReturning(authenticated) } where { _cH = cH; }
+            evt_user_cH() = { execution ConnectionHandler cH.user(String username) } filter { !username.startsWith("anon") } where { _cH = cH; }
+            evt_pass_cH() = { execution ConnectionHandler cH.pass() } where { _cH = cH; }
+            evt_cds_cH() = { ConnectionHandler cH.createDataSocket() } where { _cH = cH; }
+            evt_onDisconnected_cH() = { ConnectionHandler cH.onDisconnected() } where { _cH = cH; }
+        }
+
+        PROPERTY property{
+
+            STATES{
+                ACCEPTING{ good}
+                BAD{ bad }
+                STARTING{ start{ reh = new RegExpHolder(exprIndex); }}
+            }
+
+            TRANSITIONS{
+                start -> bad [ timeout_hasE \reh.getId()==id \reh.stop(); ]
+                start -> good [ timeout_isE \reh.getId()==id \reh.stop(); ]
+                start -> bad [ evt_onConnected_cH \reh.toDerivative(Sym_onConnected_cH).hasEmptyString() \reh.stop(); ]
+                start -> bad [ evt_auth_cH \authenticated && reh.toDerivative(Sym_auth_cH).hasEmptyString() \reh.stop(); ]
+                start -> bad [ evt_user_cH \reh.toDerivative(Sym_user_cH).hasEmptyString() \reh.stop(); ]
+                start -> bad [ evt_pass_cH \reh.toDerivative(Sym_pass_cH).hasEmptyString() \reh.stop(); ]
+                start -> bad [ evt_cds_cH \reh.toDerivative(Sym_cds_cH).hasEmptyString() \reh.stop(); ]
+                start -> bad [ evt_onDisconnected_cH \reh.toDerivative(Sym_onDisconnected_cH).hasEmptyString() \reh.stop(); ]
+                start -> good [ evt_onConnected_cH \reh.getRegExp().isEmpty() \reh.stop(); ]
+                start -> good [ evt_auth_cH \authenticated && reh.getRegExp().isEmpty() \reh.stop(); ]
+                start -> good [ evt_user_cH \reh.getRegExp().isEmpty() \reh.stop(); ]
+                start -> good [ evt_pass_cH \reh.getRegExp().isEmpty() \reh.stop(); ]
+                start -> good [ evt_cds_cH \reh.getRegExp().isEmpty() \reh.stop(); ]
+                start -> good [ evt_onDisconnected_cH \reh.getRegExp().isEmpty() \reh.stop(); ]
+            }
+        }
+    }
+}

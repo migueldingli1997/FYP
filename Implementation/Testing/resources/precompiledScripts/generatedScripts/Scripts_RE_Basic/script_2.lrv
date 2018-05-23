@@ -1,0 +1,41 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.RE.RegExpHolder;
+    import RE.lib.basic.Symbol;
+}
+
+GLOBAL{
+
+    VARIABLES{
+        int exprIndex = RegExpHolder.parseAndStore("[p] 1; {ADMIN_initialise}");
+        Symbol Sym_ADMIN_initialise = new Symbol("ADMIN_initialise");
+
+        RegExpHolder reh = null;
+        int currentState = 0;
+    }
+
+    EVENTS{ 
+        evt_ADMIN_initialise() = { *.ADMIN_initialise() }
+        timeout_isE(int id) = { RegExpHolder r.triggerTimeout_isEmpty() } where { id = r.getId(); }
+        evt_LarvaReset() = { LarvaController *.triggerReset() }
+        evt_LarvaStop() = { LarvaController *.triggerStop() }
+    }
+
+    PROPERTY property{
+
+        STATES{
+            BAD{ bad{ currentState = -1; }}
+            NORMAL { stopped }
+            STARTING{ start{ currentState = 0; reh = new RegExpHolder(exprIndex); }}
+        }
+
+        TRANSITIONS{
+            start -> bad [ timeout_isE \reh.getId()==id \reh.stop(); ]
+            start -> bad [ evt_ADMIN_initialise \reh.toDerivative(Sym_ADMIN_initialise).isEmpty() \reh.stop(); ]
+            stopped -> start [ evt_LarvaReset ]
+            start -> stopped [ evt_LarvaStop \\reh.stop(); ]
+            bad -> stopped [ evt_LarvaStop \\reh.stop(); ]
+        }
+    }
+}

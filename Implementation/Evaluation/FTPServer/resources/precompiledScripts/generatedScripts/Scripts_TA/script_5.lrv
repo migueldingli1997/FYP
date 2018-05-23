@@ -1,0 +1,154 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.TA.AutomatonInstance;
+    import larvaTools.TA.StateSkip;
+    import larvaTools.TA.Outcome;
+    import com.guichaguri.minimalftp.handler.ConnectionHandler;
+}
+
+GLOBAL{
+
+    EVENTS{
+    }
+
+    FOREACH(ConnectionHandler _cH){
+
+        VARIABLES{
+            Channel channel_stateSkip = new Channel();
+            Channel channel_TAsToMain = new Channel();
+            int instanceCount = 0;
+        }
+
+        EVENTS{
+            evt_cds_cH() = { ConnectionHandler cH.createDataSocket() } where { _cH = cH; }
+            evt_anySymbol_cH() = { evt_cds_cH }
+
+            evt_channelTAsToMain(String state) = { channel_TAsToMain.receive(Object outcomeObj); } where { 
+                final Outcome outcome = (Outcome) outcomeObj;
+                state = outcome.getState(); 
+                _cH = (ConnectionHandler) outcome.getVar(0); 
+            }
+        }
+
+        PROPERTY main{
+            STATES{
+                ACCEPTING{ good }
+                BAD{ bad }
+                STARTING{
+                    start {
+                        instanceCount = 1;
+                        channel_stateSkip.send(new StateSkip(new AutomatonInstance(true, true), "main_to_start", new Object[]{_cH}));
+                    }
+                }
+            }
+            TRANSITIONS{
+                start -> bad [ evt_channelTAsToMain \state.equals("bad") ]
+                start -> good [ evt_channelTAsToMain \state.equals("good") && --instanceCount == 0 ]
+            }
+        }
+
+        FOREACH(AutomatonInstance ta){
+
+            VARIABLES{ 
+                Clock clock_0 = new Clock();
+            }
+
+            EVENTS{
+                evt_clock_0() = { clock_0@10 }
+                evt_clock_0_dyn() = { clock_0@@ }
+                evt_anyTimeout() = { evt_clock_0 | evt_clock_0_dyn }
+                evt_channelStateSkip(StateSkip ss) = { channel_stateSkip.receive(Object ssObj); } where { 
+                    ss = (StateSkip) ssObj; 
+                    ta = ss.getInstance(); 
+                    _cH = (ConnectionHandler) ss.getVar(0); 
+                }
+            }
+
+            PROPERTY property{
+                STATES{
+                    NORMAL { S0 S1 S2 S3 S4 S5 
+                        S6 {
+                            %% New branch
+                            if (true) {
+                                instanceCount++;
+                                channel_stateSkip.send(new StateSkip(new AutomatonInstance(true), "S6_to_start", new Clock[]{clock_0}, new Object[]{_cH}));
+                            }
+                            %% New branch
+                            if (true) {
+                                instanceCount++;
+                                channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S6_to_S0", new Clock[]{clock_0}, new Object[]{_cH}));
+                            }
+                            %% Send termination message and kill the automaton
+                            channel_TAsToMain.send(new Outcome("good", new Object[]{_cH}));
+                            _killThis();
+                        }
+                        bad { channel_TAsToMain.send(new Outcome("bad", new Object[]{_cH})); _killThis(); }
+                        good { channel_TAsToMain.send(new Outcome("good", new Object[]{_cH})); _killThis(); }
+                    }
+                    STARTING{ 
+                        start {
+                            if (ta.shouldPauseClocks){
+                                clock_0.pause();
+                                ta.shouldPauseClocks = false;
+                            }
+                            if (ta.shouldPerformStartActions) {
+                                %% The below actions should only be performed once
+                                ta.shouldPerformStartActions = false;
+                                %% New branch
+                                if (true) {
+                                    instanceCount++;
+                                    channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "start_to_S0", new Clock[]{clock_0}, new Object[]{_cH}));
+                                }
+                            }
+                        }
+                    }
+                }
+                TRANSITIONS{
+                    S3 -> S4 [ evt_cds_cH ]
+                    S2 -> S3 [ evt_cds_cH ]
+                    S1 -> S2 [ evt_cds_cH ]
+                    S4 -> bad [ evt_cds_cH \clock_0.current() < 10 \clock_0.pause(); ]
+                    S0 -> S1 [ evt_cds_cH \\clock_0.reset(); ]
+                    start -> S6 [ evt_cds_cH ]
+                    start -> S0 [ evt_channelStateSkip \ss.getDestination().equals("start_to_S0") \setClocks(ss, clock_0); ]
+                    start -> start [ evt_channelStateSkip \ss.getDestination().equals("S6_to_start") \setClocks(ss, clock_0); ]
+                    start -> S0 [ evt_channelStateSkip \ss.getDestination().equals("S6_to_S0") \setClocks(ss, clock_0); ]
+                    start -> good [ evt_anySymbol_cH ]
+                    start -> good [ evt_anyTimeout ]
+                    S0 -> good [ evt_anySymbol_cH ]
+                    S0 -> good [ evt_anyTimeout ]
+                    S1 -> good [ evt_anySymbol_cH ]
+                    S1 -> good [ evt_anyTimeout ]
+                    S2 -> good [ evt_anySymbol_cH ]
+                    S2 -> good [ evt_anyTimeout ]
+                    S3 -> good [ evt_anySymbol_cH ]
+                    S3 -> good [ evt_anyTimeout ]
+                    S4 -> good [ evt_anySymbol_cH ]
+                    S4 -> good [ evt_anyTimeout ]
+                    S5 -> good [ evt_anySymbol_cH ]
+                    S5 -> good [ evt_anyTimeout ]
+                }
+            }
+        }
+    }
+}
+
+METHODS{
+    void setClocks(final StateSkip ss, final Clock...clocks) {
+        final long timeouts[] = { 10000 };
+        final Clock ssClocks[] = ss.getClocks();
+        if (ssClocks != null) {
+            for (int i = 0; i < ssClocks.length; i++) {
+                if (ssClocks[i] != null) {
+                    if (ssClocks[i].paused) {
+                        clocks[i].pause();
+                    } else {
+                        final long newValueLong = System.currentTimeMillis() - ssClocks[i].current_long();
+                        clocks[i].registerDynamically(newValueLong + timeouts[i], newValueLong);
+                    }
+                }
+            }
+        }
+    }
+}

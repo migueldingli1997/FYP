@@ -1,0 +1,29 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = circle]; S0 S1 S2 S3 S4 S5 S6 bad good start;
+node [shape = point]; _s_s;
+_s_s -> start;
+S3 -> S4 [ label = "(1) evt_cds_cH"];
+S3 -> good [ label = "(2) evt_anySymbol_cH"];
+S3 -> good [ label = "(3) evt_anyTimeout"];
+S4 -> bad [ label = "(1) evt_cds_cH\\clock_0 . current ( ) < 10 \\clock_0 . pause ( ) ; "];
+S4 -> good [ label = "(2) evt_anySymbol_cH"];
+S4 -> good [ label = "(3) evt_anyTimeout"];
+S5 -> good [ label = "(1) evt_anySymbol_cH"];
+S5 -> good [ label = "(2) evt_anyTimeout"];
+start -> S6 [ label = "(1) evt_cds_cH"];
+start -> S0 [ label = "(2) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" start_to_S0 \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> start [ label = "(3) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" S6_to_start \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> S0 [ label = "(4) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" S6_to_S0 \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> good [ label = "(5) evt_anySymbol_cH"];
+start -> good [ label = "(6) evt_anyTimeout"];
+S0 -> S1 [ label = "(1) evt_cds_cH\\\\clock_0 . reset ( ) ; "];
+S0 -> good [ label = "(2) evt_anySymbol_cH"];
+S0 -> good [ label = "(3) evt_anyTimeout"];
+S1 -> S2 [ label = "(1) evt_cds_cH"];
+S1 -> good [ label = "(2) evt_anySymbol_cH"];
+S1 -> good [ label = "(3) evt_anyTimeout"];
+S2 -> S3 [ label = "(1) evt_cds_cH"];
+S2 -> good [ label = "(2) evt_anySymbol_cH"];
+S2 -> good [ label = "(3) evt_anyTimeout"];
+}

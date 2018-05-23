@@ -1,0 +1,67 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.RE.RegExpHolder;
+    import RE.lib.basic.Symbol;
+    import com.guichaguri.minimalftp.handler.ConnectionHandler;
+}
+
+GLOBAL{
+
+    VARIABLES{
+        int exprIndex = RegExpHolder.parseAndStore("typedef cH: com.guichaguri.minimalftp.handler.ConnectionHandler; [n] syst(cH) + stat(cH) + mode(cH) + pasv(cH) + port(cH); {authenticate(cH)}");
+        Symbol Sym_syst_cH = new Symbol("syst", Arrays.asList("cH"));
+        Symbol Sym_stat_cH = new Symbol("stat", Arrays.asList("cH"));
+        Symbol Sym_mode_cH = new Symbol("mode", Arrays.asList("cH"));
+        Symbol Sym_pasv_cH = new Symbol("pasv", Arrays.asList("cH"));
+        Symbol Sym_port_cH = new Symbol("port", Arrays.asList("cH"));
+        Symbol Sym_authenticate_cH = new Symbol("authenticate", Arrays.asList("cH"));
+    }
+
+    EVENTS{ 
+        timeout_isE(int id) = { RegExpHolder r.triggerTimeout_isEmpty() } where { id = r.getId(); }
+        timeout_hasE(int id) = { RegExpHolder r.triggerTimeout_hasEmptyString() } where { id = r.getId(); }
+    }
+
+    FOREACH(ConnectionHandler _cH){
+
+        VARIABLES{
+            RegExpHolder reh = null;
+        }
+
+        EVENTS{ 
+            evt_syst_cH() = { execution ConnectionHandler cH.syst() } where { _cH = cH; }
+            evt_stat_cH() = { execution ConnectionHandler cH.stat() } where { _cH = cH; }
+            evt_mode_cH() = { execution ConnectionHandler cH.mode() } where { _cH = cH; }
+            evt_pasv_cH() = { execution ConnectionHandler cH.pasv() } where { _cH = cH; }
+            evt_port_cH() = { execution ConnectionHandler cH.port() } where { _cH = cH; }
+            evt_authenticate_cH(boolean authenticated) = { ConnectionHandler cH.authenticate()uponReturning(authenticated) } where { _cH = cH; }
+        }
+
+        PROPERTY property{
+
+            STATES{
+                ACCEPTING{ good}
+                BAD{ bad }
+                STARTING{ start{ reh = new RegExpHolder(exprIndex); }}
+            }
+
+            TRANSITIONS{
+                start -> bad [ timeout_hasE \reh.getId()==id \reh.stop(); ]
+                start -> good [ timeout_isE \reh.getId()==id \reh.stop(); ]
+                start -> bad [ evt_syst_cH \reh.toDerivative(Sym_syst_cH).hasEmptyString() \reh.stop(); ]
+                start -> bad [ evt_stat_cH \reh.toDerivative(Sym_stat_cH).hasEmptyString() \reh.stop(); ]
+                start -> bad [ evt_mode_cH \reh.toDerivative(Sym_mode_cH).hasEmptyString() \reh.stop(); ]
+                start -> bad [ evt_pasv_cH \reh.toDerivative(Sym_pasv_cH).hasEmptyString() \reh.stop(); ]
+                start -> bad [ evt_port_cH \reh.toDerivative(Sym_port_cH).hasEmptyString() \reh.stop(); ]
+                start -> bad [ evt_authenticate_cH \authenticated && reh.toDerivative(Sym_authenticate_cH).hasEmptyString() \reh.stop(); ]
+                start -> good [ evt_syst_cH \reh.getRegExp().isEmpty() \reh.stop(); ]
+                start -> good [ evt_stat_cH \reh.getRegExp().isEmpty() \reh.stop(); ]
+                start -> good [ evt_mode_cH \reh.getRegExp().isEmpty() \reh.stop(); ]
+                start -> good [ evt_pasv_cH \reh.getRegExp().isEmpty() \reh.stop(); ]
+                start -> good [ evt_port_cH \reh.getRegExp().isEmpty() \reh.stop(); ]
+                start -> good [ evt_authenticate_cH \authenticated && reh.getRegExp().isEmpty() \reh.stop(); ]
+            }
+        }
+    }
+}

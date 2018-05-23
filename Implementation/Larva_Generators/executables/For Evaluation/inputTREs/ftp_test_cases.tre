@@ -1,0 +1,38 @@
+/*
+  Every processing of a command requires a response to be sent within 1 second.
+*/
+typedef ftpC: com.guichaguri.minimalftp.FTPConnection;
+[p] ((~process(ftpC))*.process(ftpC).sendResponse(ftpC)[0,1])*;
+
+/*
+  Connection commands requiring authentication must be preceded by an authentication.
+*/
+typedef cH: com.guichaguri.minimalftp.handler.ConnectionHandler;
+[n] syst(cH) + stat(cH) + mode(cH) + pasv(cH) + port(cH); {authenticate(cH)}
+
+/*
+  An anonymous client can only perform up to 5 up/dn
+  and cannot start up/dn after 1 hour has passed.
+*/
+typedef cH: com.guichaguri.minimalftp.handler.ConnectionHandler;
+[n] onConnected(cH).(auth(cH) & ~user(cH) & ~pass(cH)).(
+        cds(cH).cds(cH).cds(cH).cds(cH).cds(cH).cds(cH) +
+        ?*.(~onDisconnected(cH))[PT1H,inf]
+);
+
+/*
+  Upon connecting, if username/password is required, it must be supplied before the user
+  is authenticated. Also, it is beyond this point that the user is allowed to up/dn.
+*/
+typedef cH: com.guichaguri.minimalftp.handler.ConnectionHandler;
+[p] (
+      onConnected(cH).needUser(cH).(user(cH).needPass(cH))*.pass(cH)
+    + onConnected(cH).needUser(cH).user(cH)/*.noNeedPass*/
+    + onConnected(cH)/*.noNeedUser*/
+).authenticate(cH).(user(cH) + pass(cH) + createDataSocket(cH))*;
+
+/*
+  A user cannot start more than four uploads/downloads within 10 seconds.
+*/
+typedef cH: com.guichaguri.minimalftp.handler.ConnectionHandler;
+[n] ?*.cds(cH).(cds(cH).cds(cH).cds(cH).cds(cH))[0,10];

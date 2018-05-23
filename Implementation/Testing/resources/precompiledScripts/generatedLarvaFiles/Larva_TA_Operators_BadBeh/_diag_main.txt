@@ -1,0 +1,14 @@
+digraph _logic_main {
+rankdir=LR;
+node [shape = doublecircle]; good;
+node [shape = circle]; stopped start;
+node [shape = octagon]; bad;
+node [shape = point]; _s_s;
+_s_s -> start;
+stopped -> start [ label = "(1) evt_LarvaReset"];
+bad -> stopped [ label = "(1) evt_LarvaStop\\\\instanceCount = 0 ; "];
+start -> bad [ label = "(1) evt_channelTAsToMain\\state . equals ( \" bad \" ) "];
+start -> good [ label = "(2) evt_channelTAsToMain\\state . equals ( \" good \" ) && -- instanceCount == 0 "];
+start -> stopped [ label = "(3) evt_LarvaStop\\\\instanceCount = 0 ; "];
+good -> stopped [ label = "(1) evt_LarvaStop\\\\instanceCount = 0 ; "];
+}

@@ -1,0 +1,7 @@
+FTPClientExample obtained from:
+
+    https://commons.apache.org/proper/commons-net/
+
+Link to actual sourcecode file:
+
+    https://commons.apache.org/proper/commons-net/examples/ftp/FTPClientExample.java

@@ -1,0 +1,15 @@
+/* PARAMETERIZED (SINGLE PARAMETER) */
+/* -------------------------------- */
+    typedef ua : transactionsystem.UserAccount;
+[p] deposit(ua); {withdraw(ua)}
+
+/* PARAMETERIZED (TWO PARAMETERS) */
+/* ------------------------------ */
+    typedef ui : transactionsystem.UserInfo;
+    typedef ua : transactionsystem.UserAccount;
+[p] deposit(ui,ua); {withdraw(ui,ua)}
+
+/* PARAMETERIZED (CONCATENATION) */
+/* ----------------------------- */
+    typedef ua : transactionsystem.UserAccount;
+[p] deposit(ua).withdraw(ua);

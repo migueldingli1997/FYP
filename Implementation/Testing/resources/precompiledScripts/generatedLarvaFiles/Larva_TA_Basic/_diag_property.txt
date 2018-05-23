@@ -1,0 +1,10 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = circle]; S0 bad good start;
+node [shape = point]; _s_s;
+_s_s -> start;
+start -> bad [ label = "(1) evt_ADMIN_reconcile"];
+start -> start [ label = "(2) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" main_to_start \" ) "];
+start -> good [ label = "(3) evt_anySymbol"];
+S0 -> good [ label = "(1) evt_anySymbol"];
+}

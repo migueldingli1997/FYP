@@ -1,0 +1,19 @@
+/* CONCAT OPERATOR */
+/* --------------- */
+[n] ADMIN_initialise.ADMIN_createUser; {ADMIN_reconcile}
+
+/* OR OPERATOR */
+/* ----------- */
+[n] ADMIN_initialise + ADMIN_reconcile; {ADMIN_createUser}
+
+/* AND OPERATOR */
+/* ------------ */
+[n] ADMIN_initialise & ~ADMIN_reconcile; {ADMIN_createUser}
+
+/* STAR OPERATOR */
+/* ------------- */
+[n] ADMIN_createUser*; {ADMIN_reconcile}
+
+/* TIME INTERVAL OPERATOR */
+/* ---------------------- */
+[n] ADMIN_initialise[2,4];

@@ -1,0 +1,127 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.TA.AutomatonInstance;
+    import larvaTools.TA.StateSkip;
+    import larvaTools.TA.Outcome;
+}
+
+GLOBAL{
+
+    VARIABLES{
+        Channel channel_stateSkip = new Channel();
+        Channel channel_TAsToMain = new Channel();
+        int instanceCount = 0;
+        int currentState = 0;
+    }
+
+    EVENTS{
+        evt_ADMIN_createUser() = { *.ADMIN_createUser() }
+        evt_ADMIN_reconcile() = { *.ADMIN_reconcile() }
+        evt_anySymbol() = { evt_ADMIN_createUser | evt_ADMIN_reconcile }
+
+        evt_channelTAsToMain(String state) = { channel_TAsToMain.receive(Object outcomeObj); } where { 
+            final Outcome outcome = (Outcome) outcomeObj;
+            state = outcome.getState(); 
+        }
+
+        evt_LarvaReset() = { LarvaController *.triggerReset() }
+        evt_LarvaStop() = { LarvaController *.triggerStop() }
+    }
+
+    PROPERTY main{
+        STATES{
+            BAD{ bad{ currentState = -1; }}
+            NORMAL{ stopped }
+            STARTING{
+                start {
+                    currentState = 0;
+                    instanceCount = 1;
+                    channel_stateSkip.send(new StateSkip(new AutomatonInstance(true, true), "main_to_start"));
+                }
+            }
+        }
+        TRANSITIONS{
+            start -> bad [ evt_channelTAsToMain \state.equals("bad") && --instanceCount == 0 ]
+            start -> stopped [ evt_LarvaStop \\instanceCount = 0; ]
+            bad -> stopped [ evt_LarvaStop \\instanceCount = 0; ]
+            stopped -> start [ evt_LarvaReset ]
+        }
+    }
+
+    FOREACH(AutomatonInstance ta){
+
+        VARIABLES{ }
+
+        EVENTS{
+            evt_channelStateSkip(StateSkip ss) = { channel_stateSkip.receive(Object ssObj); } where { 
+                ss = (StateSkip) ssObj; 
+                ta = ss.getInstance(); 
+            }
+        }
+
+        PROPERTY property{
+            STATES{
+                NORMAL { S0 S1 
+                    S2 {
+                        %% New branch
+                        if (true) {
+                            instanceCount++;
+                            channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "S2_to_S0", new Clock[]{}));
+                        }
+                        %% New branch
+                        if (true) {
+                            instanceCount++;
+                            channel_stateSkip.send(new StateSkip(new AutomatonInstance(true), "S2_to_start", new Clock[]{}));
+                        }
+                        %% Send termination message and kill the automaton
+                        channel_TAsToMain.send(new Outcome("bad"));
+                        _killThis();
+                    }
+                    bad { channel_TAsToMain.send(new Outcome("bad")); _killThis(); }
+                }
+                STARTING{ 
+                    start {
+                        if (ta.shouldPerformStartActions) {
+                            %% The below actions should only be performed once
+                            ta.shouldPerformStartActions = false;
+                            %% New branch
+                            if (true) {
+                                instanceCount++;
+                                channel_stateSkip.send(new StateSkip(new AutomatonInstance(false), "start_to_S1", new Clock[]{}));
+                            }
+                        }
+                    }
+                }
+            }
+            TRANSITIONS{
+                start -> S2 [ evt_ADMIN_createUser ]
+                start -> S1 [ evt_channelStateSkip \ss.getDestination().equals("start_to_S1") ]
+                start -> S0 [ evt_channelStateSkip \ss.getDestination().equals("S2_to_S0") ]
+                start -> start [ evt_channelStateSkip \ss.getDestination().equals("S2_to_start") ]
+                start -> bad [ evt_anySymbol ]
+                S0 -> bad [ evt_anySymbol ]
+                S1 -> bad [ evt_anySymbol ]
+            }
+        }
+    }
+}
+
+METHODS{
+    void setClocks(final StateSkip ss, final Clock...clocks) {
+        final long timeouts[] = {  };
+        final Clock ssClocks[] = ss.getClocks();
+        if (ssClocks != null) {
+            for (int i = 0; i < ssClocks.length; i++) {
+                if (ssClocks[i] != null) {
+                    if (ssClocks[i].paused) {
+                        clocks[i].pause();
+                    } else {
+                        final long newValueLong = System.currentTimeMillis() - ssClocks[i].current_long();
+                        clocks[i].registerDynamically(newValueLong + timeouts[i], newValueLong);
+                    }
+                }
+            }
+        }
+    }
+}

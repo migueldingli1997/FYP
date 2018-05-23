@@ -1,0 +1,16 @@
+digraph _logic_property {
+rankdir=LR;
+node [shape = circle]; S0 S1 S2 bad start;
+node [shape = point]; _s_s;
+_s_s -> start;
+start -> S2 [ label = "(1) evt_ADMIN_reconcile"];
+start -> S1 [ label = "(2) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" start_to_S1 \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> S0 [ label = "(3) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" S2_to_S0 \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> start [ label = "(4) evt_channelStateSkip\\ss . getDestination ( ) . equals ( \" S2_to_start \" ) \\setClocks ( ss , clock_0 ) ; "];
+start -> bad [ label = "(5) evt_anySymbol"];
+start -> bad [ label = "(6) evt_anyTimeout"];
+S0 -> bad [ label = "(1) evt_anySymbol"];
+S0 -> bad [ label = "(2) evt_anyTimeout"];
+S1 -> bad [ label = "(1) evt_anySymbol"];
+S1 -> bad [ label = "(2) evt_anyTimeout"];
+}

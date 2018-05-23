@@ -1,0 +1,61 @@
+IMPORTS{
+    import java.util.*;
+    import larvaTools.LarvaController;
+    import larvaTools.RE.RegExpHolder;
+    import RE.lib.basic.Symbol;
+    import com.guichaguri.minimalftp.handler.ConnectionHandler;
+}
+
+GLOBAL{
+
+    VARIABLES{
+        int exprIndex = RegExpHolder.parseAndStore("typedef cH: com.guichaguri.minimalftp.handler.ConnectionHandler; [p] ( onConnected(cH).needUser(cH).(user(cH).needPass(cH))*.pass(cH) + onConnected(cH).needUser(cH).user(cH) + onConnected(cH) ).authenticate(cH).(user(cH) + pass(cH) + createDataSocket(cH))*;");
+        Symbol Sym_onConnected_cH = new Symbol("onConnected", Arrays.asList("cH"));
+        Symbol Sym_needUser_cH = new Symbol("needUser", Arrays.asList("cH"));
+        Symbol Sym_user_cH = new Symbol("user", Arrays.asList("cH"));
+        Symbol Sym_needPass_cH = new Symbol("needPass", Arrays.asList("cH"));
+        Symbol Sym_pass_cH = new Symbol("pass", Arrays.asList("cH"));
+        Symbol Sym_authenticate_cH = new Symbol("authenticate", Arrays.asList("cH"));
+        Symbol Sym_createDataSocket_cH = new Symbol("createDataSocket", Arrays.asList("cH"));
+    }
+
+    EVENTS{ 
+        timeout_isE(int id) = { RegExpHolder r.triggerTimeout_isEmpty() } where { id = r.getId(); }
+    }
+
+    FOREACH(ConnectionHandler _cH){
+
+        VARIABLES{
+            RegExpHolder reh = null;
+        }
+
+        EVENTS{ 
+            evt_onConnected_cH() = { ConnectionHandler cH.onConnected() } where { _cH = cH; }
+            evt_needUser_cH(boolean needs) = { *.needsUsername()uponReturning(needs)within(ConnectionHandler cH) } where { _cH = cH; }
+            evt_user_cH() = { execution ConnectionHandler cH.user() } where { _cH = cH; }
+            evt_needPass_cH(boolean needs) = { *.needsPassword()uponReturning(needs)within(ConnectionHandler cH) } where { _cH = cH; }
+            evt_pass_cH() = { execution ConnectionHandler cH.pass() } where { _cH = cH; }
+            evt_authenticate_cH(boolean authenticated) = { ConnectionHandler cH.authenticate()uponReturning(authenticated) } where { _cH = cH; }
+            evt_createDataSocket_cH() = { ConnectionHandler cH.createDataSocket() } where { _cH = cH; }
+        }
+
+        PROPERTY property{
+
+            STATES{
+                BAD{ bad }
+                STARTING{ start{ reh = new RegExpHolder(exprIndex); }}
+            }
+
+            TRANSITIONS{
+                start -> bad [ timeout_isE \reh.getId()==id \reh.stop(); ]
+                start -> bad [ evt_onConnected_cH \reh.toDerivative(Sym_onConnected_cH).isEmpty() \reh.stop(); ]
+                start -> bad [ evt_needUser_cH \needs && reh.toDerivative(Sym_needUser_cH).isEmpty() \reh.stop(); ]
+                start -> bad [ evt_user_cH \reh.toDerivative(Sym_user_cH).isEmpty() \reh.stop(); ]
+                start -> bad [ evt_needPass_cH \needs && reh.toDerivative(Sym_needPass_cH).isEmpty() \reh.stop(); ]
+                start -> bad [ evt_pass_cH \reh.toDerivative(Sym_pass_cH).isEmpty() \reh.stop(); ]
+                start -> bad [ evt_authenticate_cH \authenticated && reh.toDerivative(Sym_authenticate_cH).isEmpty() \reh.stop(); ]
+                start -> bad [ evt_createDataSocket_cH \reh.toDerivative(Sym_createDataSocket_cH).isEmpty() \reh.stop(); ]
+            }
+        }
+    }
+}

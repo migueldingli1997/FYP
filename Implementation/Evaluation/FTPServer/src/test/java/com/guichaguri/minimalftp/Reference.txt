@@ -1,0 +1,8 @@
+SimpleServer and CustomServer obtained from:
+
+    https://github.com/Guichaguri/MinimalFTP/tree/master/src/test/java/com/guichaguri/minimalftp
+
+Link to actual sourcecode files:
+
+    https://github.com/Guichaguri/MinimalFTP/blob/master/src/test/java/com/guichaguri/minimalftp/SimpleServer.java
+    https://github.com/Guichaguri/MinimalFTP/blob/master/src/test/java/com/guichaguri/minimalftp/CustomServer.java
