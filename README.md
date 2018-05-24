@@ -81,6 +81,11 @@ To run an FTP client scenario method, navigate to the ``Evaluation/FTPClient/exe
 
 At this point, the VisualVM profiling tool can be used to analyse the CPU and memory usages of the FTP server.
 
+### 3.5 - Extra Scenario Methods
+The ``runScenario.sh`` script in ``Evaluation/FTPClient/executables`` also recognizes the scenarios 3.3, 3.4, 5.3, and 5.4. These scenarios are meant to show that the properties 3 and 5 specified for the FTP server are violated when enough file transfers are performed. Scenarios 3.3 and 5.3 perform a low enough number of file transfers such that they do not violate the properties, whilst scenarios 3.4 and 5.4 perform just enough file transfers to violate the properties.
+
+The output from Larva indicating that a property has been violated can generally found in a ``larvaRuntimeOutput`` folder. In this case, this folder is found at ``Evaluation/FTPServer/larvaRuntimeOutput/``.
+
 ### 3.5 - Generating and Compiling Larva Scripts
 To generate Larva scripts, navigate to the ``Larva_Generators/executables/`` folder. Four options are available from this point:
 1. To generate a Larva script based on a custom input, execute ``generateAnyScript.sh``.
