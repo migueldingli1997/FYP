@@ -1,4 +1,4 @@
-# Runtime Verification of Timed Regular Expressions in Larva
+# Runtime Verification of Timed Regular Expressions in Larva (ICT3907 - Final Year Project in Computing Science)
 
 ## Table of Contents  
 1 - Prerequisites  
