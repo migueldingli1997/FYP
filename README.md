@@ -1,6 +1,14 @@
 # Runtime Verification of Timed Regular Expressions in Larva (ICT3907 - Final Year Project in Computing Science)
 
-## Table of Contents  
+## Documents
+1 - ICT3907 Guidelines
+2 - Progress Report
+3 - Final Report
+4 - Review Report
+5 - Abstract
+6 - Poster
+
+## Implementation Table of Contents  
 1 - Prerequisites  
 2 - Cloning and Building  
 3 - Executables
